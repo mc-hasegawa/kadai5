@@ -10,7 +10,6 @@ $db = mysql_select_db($dbname, $link);
 mysql_query('SET NAMES utf8', $link);
 session_start();
 $input_param_array = $_SESSION["input_param"];
-var_dump($input_param_array);
 if ($_POST)
 {
 	foreach ($input_param_array as $value)
@@ -20,6 +19,7 @@ if ($_POST)
 	}
 	$sql = "REPLACE INTO `kadai_hasegawa_ziplist`(`public_group_code`, `zip_code_old`, `zip_code`, `prefecture_kana`, `city_kana`, `town_kana`, `prefecture`, `city`, `town`, `town_double_zip_code`, `town_multi_address`, `town_attach_district`, `zip_code_multi_town`, `update_check`, `update_reason`) VALUES ('$input0','$input1','$input2','$input3','$input4','$input5','$input6','$input7','$input8','$input9','$input10','$input11','$input12','$input13','$input14')";
 	$result_flag = mysql_query($sql);
+	var_dump($pull_data);
 	if (!$result_flag)
 	{
 	    die('REPLACEクエリーが失敗しました。'.mysql_error());
@@ -29,6 +29,13 @@ if ($_POST)
 	session_destroy();
 	mysql_close($link);
 }
+var_dump($input_param_array);
+$town_double_zip_code = mysql_query("SELECT `show_content` FROM `kadai_hasegawa_town_code_mst` WHERE `code_key_index` LIKE '$input_param_array[9]'");
+$town_multi_address = mysql_query("SELECT `show_content` FROM `kadai_hasegawa_town_code_mst` WHERE `code_key_index` LIKE '$input_param_array[10]'");
+$town_attach_district = mysql_query("SELECT `show_content` FROM `kadai_hasegawa_town_code_mst` WHERE `code_key_index` LIKE '$input_param_array[11]'");
+$zip_code_multi_town = mysql_query("SELECT `show_content` FROM `kadai_hasegawa_town_code_mst` WHERE `code_key_index` LIKE '$input_param_array[12]'");
+$update_check = mysql_query("SELECT `show_content` FROM `kadai_hasegawa_update_check_code_mst` WHERE `code_key_index` LIKE '$input_param_array[13]'");
+$update_reason = mysql_query("SELECT `show_content` FROM `kadai_hasegawa_update_check_code_mst` WHERE `code_key_index` LIKE '$input_param_array[14]'");
 ?>
 <html>
 <head>
@@ -49,94 +56,32 @@ if ($_POST)
 <p>9.町域名<br><?php echo htmlspecialchars($input_param_array[8]); ?></p>
 <p>10.一町域で複数の郵便番号か<br>
 <?php
-if(htmlspecialchars($input_param_array[9]) == 0)
-{
-	echo "該当せず";
-}
-else
-{
-	echo "該当";
-}
+echo mysql_fetch_assoc($town_double_zip_code)[print_r("show_content",true)];
 ?>
 </p>
 <p>11.小字毎に番地が起番されている町域か<br>
 <?php
-if(htmlspecialchars($input_param_array[10]) == 0)
-{
-	echo "該当せず";
-}
-else
-{
-	echo "該当";
-}
+echo mysql_fetch_assoc($town_multi_address)[print_r("show_content",true)];
 ?>
 </p>
 <p>12.丁目を有する町域名か<br>
 <?php
-if(htmlspecialchars($input_param_array[11]) == 0)
-{
-	echo "該当せず";
-}
-else
-{
-	echo "該当";
-}
+echo mysql_fetch_assoc($town_attach_district)[print_r("show_content",true)];
 ?>
 </p>
 <p>13.一郵便番号で複数の町域か<br>
 <?php
-if(htmlspecialchars($input_param_array[12]) == 0)
-{
-	echo "該当せず";
-}
-else
-{
-	echo "該当";
-}
+echo mysql_fetch_assoc($zip_code_multi_town)[print_r("show_content",true)];
 ?>
 </p>
 <p>14.更新確認<br>
 <?php
-switch (htmlspecialchars($input_param_array[13]))
-{
-	case 0:
-		printf("<th>変更なし</th>");
-		break;
-	case 1:
-		printf("<th>変更あり</th>");
-		break;
-	case 2:
-		printf("<th>廃止(廃止データのみ使用)</th>");
-		break;
-}
+echo mysql_fetch_assoc($update_check)[print_r("show_content",true)];
 ?>
 </p>
 <p>15.更新理由<br>
 <?php 
-switch (htmlspecialchars($input_param_array[14]))
-{
-	case 0:
-		printf("<th>変更なし</th>");
-		break;
-	case 1:
-		printf("<th>市政・区政・町政・分区・政令指定都市施行</th>");
-		break;
-	case 2:
-		printf("<th>住居表示の実施</th>");
-		break;
-	case 3:
-		printf("<th>区画整理</th>");
-		break;
-	case 4:
-		printf("<th>郵便区調整等</th>");
-		break;
-	case 5:
-		printf("<th>訂正</th>");
-		break;
-	case 6:
-		printf("<th>廃止(廃止データのみ使用)</th>");
-		break;
-}
+echo mysql_fetch_assoc($update_reason)[print_r("show_content",true)];
 ?>
 </p>
 <form name="form_post" method="post">
@@ -148,7 +93,7 @@ switch (htmlspecialchars($input_param_array[14]))
 	}
 	?>
 	<input type="submit" value="登録">
-	<input type="submit" value="戻る" onClick="form.action='inputpage.php';return true">
+	<input type="submit" value="戻る" onClick="form.action='overwrite.php';return true">
 </form>
 </body>
 </html>

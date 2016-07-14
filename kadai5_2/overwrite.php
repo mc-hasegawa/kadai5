@@ -11,12 +11,17 @@ $show_table_data_array = array();
 $sql = "SELECT * FROM `kadai_hasegawa_ziplist`";
 $table_sql = "SHOW FULL COLUMNS FROM `kadai_hasegawa_ziplist`";
 $search_sql = "SELECT * FROM `kadai_hasegawa_ziplist` WHERE `zip_code` LIKE '%$search_value%'";
+//プルダウン情報
+$pull_data_sql = "SELECT `double_zip_code`.`show_content`AS`town_double_zip_code`,`multi_address`.`show_content`AS`town_multi_address`,`attach_district`.`show_content`AS`town_attach_district`,`multi_town`.`show_content`AS`zip_code_multi_town`,`kadai_hasegawa_update_check_code_mst`.`show_content`AS`update_check`,`kadai_hasegawa_update_reason_code_mst`.`show_content`AS`update_reason` FROM `kadai_hasegawa_ziplist` LEFT JOIN `kadai_hasegawa_town_code_mst` AS `double_zip_code` ON `kadai_hasegawa_ziplist`.`town_double_zip_code` = `double_zip_code`.`code_key_index` LEFT JOIN `kadai_hasegawa_town_code_mst` AS `multi_address` ON `kadai_hasegawa_ziplist`.`town_multi_address` = `multi_address`.`code_key_index` LEFT JOIN `kadai_hasegawa_town_code_mst` AS `attach_district` ON `kadai_hasegawa_ziplist`.`town_attach_district` = `attach_district`.`code_key_index` LEFT JOIN `kadai_hasegawa_town_code_mst` AS `multi_town` ON `kadai_hasegawa_ziplist`.`zip_code_multi_town` = `multi_town`.`code_key_index` LEFT JOIN `kadai_hasegawa_update_check_code_mst` ON `kadai_hasegawa_ziplist`.`update_check` = `kadai_hasegawa_update_check_code_mst`.`code_key_index` LEFT JOIN `kadai_hasegawa_update_reason_code_mst` ON `kadai_hasegawa_ziplist`.`update_reason` = `kadai_hasegawa_update_reason_code_mst`.`code_key_index` WHERE `zip_code` LIKE '%$search_value%'";
+
 if (!$link = mysql_connect($host, $username, $pass))
 {
 	die("接続失敗");
 }
 $db = mysql_select_db($dbname, $link);
 mysql_query('SET NAMES utf8', $link );
+
+$pull_data = mysql_query($pull_data_sql);
 
 $res = mysql_query($sql);
 $column_count = mysql_num_fields($res);
@@ -31,7 +36,6 @@ if (isset($_POST["input_public_group_code"],$_POST["input_zip_code_old"],$_POST[
 {
 	// "初回ではない"
 	$first_flag = false;
-	// var_dump($_POST);
 	foreach ($_POST as $value)
 	{
 		if (isset($value))
@@ -64,7 +68,7 @@ else
 		$count_th++;
 	}
 	$count_th = 0;
-	while($search_result_row = mysql_fetch_assoc($search_result))
+	while($search_result_row = mysql_fetch_assoc($search_result) and $pull_data_row = mysql_fetch_assoc($pull_data))
 	{
 		printf("<tr></tr>");
 		while ($count_th < $column_count)
@@ -76,59 +80,7 @@ else
 			}
 			if (9 <= $count_th)
 			{
-				if ($count_th <= 12)
-				{
-					if ($input_array[$count_th] == 0)
-					{
-						printf("<th>該当せず</th>");
-					}
-					else
-					{
-						printf("<th>該当</th>");
-					}
-				}
-				else if ($count_th == 13)
-				{
-					switch ($input_array[$count_th])
-					{
-						case 0:
-							printf("<th>変更なし</th>");
-							break;
-						case 1:
-							printf("<th>変更あり</th>");
-							break;
-						case 2:
-							printf("<th>廃止(廃止データのみ使用)</th>");
-							break;
-					}
-				}
-				else
-				{
-					switch ($input_array[$count_th])
-					{
-						case 0:
-							printf("<th>変更なし</th>");
-							break;
-						case 1:
-							printf("<th>市政・区政・町政・分区・政令指定都市施行</th>");
-							break;
-						case 2:
-							printf("<th>住居表示の実施</th>");
-							break;
-						case 3:
-							printf("<th>区画整理</th>");
-							break;
-						case 4:
-							printf("<th>郵便区調整等</th>");
-							break;
-						case 5:
-							printf("<th>訂正</th>");
-							break;
-						case 6:
-							printf("<th>廃止(廃止データのみ使用)</th>");
-							break;
-					}
-				}
+				printf("<th>%s</th>", $pull_data_row[print_r($column_name,true)]);
 			}
 			else
 			{

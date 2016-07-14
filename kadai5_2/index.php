@@ -107,7 +107,7 @@ $pull_data = mysql_query($pull_data_sql);
 					while ($count_th < $column_count)
 					{
 						$column_name = mysql_field_name($res, $count_th);	//カラム名取得
-						if($count_th == 3)
+						if($count_th == 2)
 						{
 							printf("<th><a href='%s?postal_code=%s'>%s</a></th>","overwrite.php",$row[print_r($column_name,true)],$row[print_r($column_name,true)]);
 						}
