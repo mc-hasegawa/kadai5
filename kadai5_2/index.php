@@ -7,12 +7,14 @@ $dbname = "lesson";
 $sql = "SELECT * FROM `kadai_hasegawa_ziplist`";
 $table_sql = "SHOW FULL COLUMNS FROM `kadai_hasegawa_ziplist`";
 require "paging.php";
-//同じテーブルのカラムを参照する為分割
-$pull_town_double_zip_code_sql = "SELECT `kadai_hasegawa_town_code_mst`.`show_content`AS`town_double_zip_code` FROM `kadai_hasegawa_ziplist` LEFT JOIN `kadai_hasegawa_town_code_mst` ON `kadai_hasegawa_ziplist`.`town_double_zip_code` = `kadai_hasegawa_town_code_mst`.`code_key_index`";
-$pull_town_multi_address_sql = "SELECT `kadai_hasegawa_town_code_mst`.`show_content`AS`town_multi_address` FROM `kadai_hasegawa_ziplist` LEFT JOIN `kadai_hasegawa_town_code_mst` ON `kadai_hasegawa_ziplist`.`town_multi_address` = `kadai_hasegawa_town_code_mst`.`code_key_index`";
-$pull_town_attach_district_sql = "SELECT `kadai_hasegawa_town_code_mst`.`show_content`AS`town_attach_district` FROM `kadai_hasegawa_ziplist` LEFT JOIN `kadai_hasegawa_town_code_mst` ON `kadai_hasegawa_ziplist`.`town_attach_district` = `kadai_hasegawa_town_code_mst`.`code_key_index`";
-$pull_zip_code_multi_town_sql = "SELECT `kadai_hasegawa_town_code_mst`.`show_content`AS`zip_code_multi_town` FROM `kadai_hasegawa_ziplist` LEFT JOIN `kadai_hasegawa_town_code_mst` ON `kadai_hasegawa_ziplist`.`zip_code_multi_town` = `kadai_hasegawa_town_code_mst`.`code_key_index`";
-$pull_update_code_mst_sql = "SELECT `kadai_hasegawa_update_check_code_mst`.`show_content`AS`update_check`,`kadai_hasegawa_update_reason_code_mst`.`show_content`AS`update_reason` FROM `kadai_hasegawa_ziplist` LEFT JOIN `kadai_hasegawa_update_check_code_mst` ON `kadai_hasegawa_ziplist`.`update_check` = `kadai_hasegawa_update_check_code_mst`.`code_key_index` LEFT JOIN `kadai_hasegawa_update_reason_code_mst` ON `kadai_hasegawa_ziplist`.`update_reason` = `kadai_hasegawa_update_reason_code_mst`.`code_key_index`";
+$pull_data_sql = "SELECT `double_zip_code`.`show_content`AS`town_double_zip_code`,`multi_address`.`show_content`AS`town_multi_address`,`attach_district`.`show_content`AS`town_attach_district`,`multi_town`.`show_content`AS`zip_code_multi_town`,`kadai_hasegawa_update_check_code_mst`.`show_content`AS`update_check`,`kadai_hasegawa_update_reason_code_mst`.`show_content`AS`update_reason`
+FROM `kadai_hasegawa_ziplist`
+LEFT JOIN `kadai_hasegawa_town_code_mst` AS `double_zip_code` ON `kadai_hasegawa_ziplist`.`town_double_zip_code` = `double_zip_code`.`code_key_index`
+LEFT JOIN `kadai_hasegawa_town_code_mst` AS `multi_address` ON `kadai_hasegawa_ziplist`.`town_multi_address` = `multi_address`.`code_key_index`
+LEFT JOIN `kadai_hasegawa_town_code_mst` AS `attach_district` ON `kadai_hasegawa_ziplist`.`town_attach_district` = `attach_district`.`code_key_index`
+LEFT JOIN `kadai_hasegawa_town_code_mst` AS `multi_town` ON `kadai_hasegawa_ziplist`.`zip_code_multi_town` = `multi_town`.`code_key_index`
+LEFT JOIN `kadai_hasegawa_update_check_code_mst` ON `kadai_hasegawa_ziplist`.`update_check` = `kadai_hasegawa_update_check_code_mst`.`code_key_index`
+LEFT JOIN `kadai_hasegawa_update_reason_code_mst` ON `kadai_hasegawa_ziplist`.`update_reason` = `kadai_hasegawa_update_reason_code_mst`.`code_key_index`";
 
 $link = mysql_connect($host, $username, $pass);
 $db = mysql_select_db($dbname, $link);
@@ -45,12 +47,7 @@ if (isset($_GET["next_page"]))
 {
 	$now_page = $_GET["next_page"];
 }
-
-$pull_town_double_zip_code = mysql_query($pull_town_double_zip_code_sql);
-$pull_town_multi_address = mysql_query($pull_town_multi_address_sql);
-$pull_town_attach_district = mysql_query($pull_town_attach_district_sql);
-$pull_zip_code_multi_town = mysql_query($pull_zip_code_multi_town_sql);
-$pull_update_code_mst = mysql_query($pull_update_code_mst_sql);
+$pull_data = mysql_query($pull_data_sql);
 ?>
 <html>
 <head>
@@ -100,12 +97,7 @@ $pull_update_code_mst = mysql_query($pull_update_code_mst_sql);
 				$count_th++;
 			}
 			$count_th = 0;
-			while($row = mysql_fetch_assoc($res)
-				and $row_pull_town_double_zip_code = mysql_fetch_assoc($pull_town_double_zip_code)
-				and $row_pull_town_multi_address = mysql_fetch_assoc($pull_town_multi_address)
-				and $row_pull_town_attach_district = mysql_fetch_assoc($pull_town_attach_district)
-				and $row_pull_zip_code_multi_town = mysql_fetch_assoc($pull_zip_code_multi_town)
-				and $row_pull_update_code_mst = mysql_fetch_assoc($pull_update_code_mst))
+			while($row = mysql_fetch_assoc($res) and $row_pull_data = mysql_fetch_assoc($pull_data))
 			{
 				if ($RECORD_NUM*($now_page-1)-1 < $count_tr)
 				{
@@ -121,27 +113,7 @@ $pull_update_code_mst = mysql_query($pull_update_code_mst_sql);
 						}
 						elseif (9 <= $count_th)
 						{
-							switch ($count_th)
-							{
-								case 9:
-									printf("<th>%s</th>", $row_pull_town_double_zip_code[print_r($column_name,true)]);
-									break;
-								case 10:
-									printf("<th>%s</th>", $row_pull_town_multi_address[print_r($column_name,true)]);
-									break;
-								case 11:
-									printf("<th>%s</th>", $row_pull_town_attach_district[print_r($column_name,true)]);
-									break;
-								case 12:
-									printf("<th>%s</th>", $row_pull_zip_code_multi_town[print_r($column_name,true)]);
-									break;
-								case 13:
-									printf("<th>%s</th>", $row_pull_update_code_mst[print_r($column_name,true)]);
-									break;
-								case 14:
-									printf("<th>%s</th>", $row_pull_update_code_mst[print_r($column_name,true)]);
-									break;
-							}
+							printf("<th>%s</th>", $row_pull_data[print_r($column_name,true)]);
 						}
 						else
 						{
